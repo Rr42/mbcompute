@@ -25,7 +25,7 @@
 VERBOSE = FALSE
 
 # Subdirectories/libs to make
-LIBS = mbcompute_lib
+LIBS = mbcompute_lib mbcsupport_lib
 
 # Subdirectories/apps to make
 APPS = core

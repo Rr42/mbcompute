@@ -1,5 +1,5 @@
 ############################################################################
-# File name: Makefile (mb_compute_core/)
+# File name: Makefile (mbcsupport_lib/)
 # Dev: GitHub@Rr42
 # Code version: v1.0
 # License:
@@ -17,35 +17,32 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 # Description: 
-# This code facilitates easy compilation of the MB core
-#  interface.
+# This code facilitates easy compilation of the MB compute
+#  engine library.
 ############################################################################
 
 # Set project directory one level above of Makefile directory. $(CURDIR) is a GNU make variable containing the path to the current working directory
 PROJDIR := $(realpath $(CURDIR)/..)
 SOURCEDIR := $(PROJDIR)
-BUILDDIR := $(PROJDIR)/build
+BUILDDIR := $(PROJDIR)/build/lib
 
 # Name of the final executable
-TARGET = mbconsole
+TARGET = libmbcsupport.a
 
 # Decide whether the commands will be shown or not
 VERBOSE = FALSE
 
 # Create the list of directories
-DIRS = core
+DIRS = mbcsupport_lib
 SOURCEDIRS = $(foreach dir, $(DIRS), $(addprefix $(SOURCEDIR)/, $(dir)))
 TARGETDIRS = $(foreach dir, $(DIRS), $(addprefix $(BUILDDIR)/, $(dir)))
 
-# Common Library headers
-INCLUDEDIR = $(PROJDIR)/mbcompute_lib $(PROJDIR)/mbcsupport_lib
-
 # Generate the GCC includes parameters by adding -I before each source folder
-INCLUDES = $(foreach dir, $(INCLUDEDIR), $(addprefix -I, $(dir))) $(foreach dir, $(SOURCEDIRS), $(addprefix -I, $(dir)))
+INCLUDES = -I/usr/local/include $(foreach dir, $(SOURCEDIRS), $(addprefix -I, $(dir)))
 
 # Libraries to link
-LIBS = -lmbcomputengine -lmbcsupport
-LIBDIR = -L$(BUILDDIR)/lib
+LIBS = 
+LIBDIR = 
 
 # Add this list to VPATH, the place make will look for the source files
 VPATH = $(SOURCEDIRS)
@@ -91,7 +88,7 @@ endif
 define generateRules
 $(1)/%.o: %.cpp
 	$(HIDE)@echo Building $$@
-	$(HIDE)$(CXX) -c $$(INCLUDES) -o $$(subst /,$$(PSEP),$$@) $$(subst /,$$(PSEP),$$<) -MMD
+	$(HIDE)$(CXX) -c $$(INCLUDES) $$(LIBDIR) $$(LIBS) -o $$(subst /,$$(PSEP),$$@) $$(subst /,$$(PSEP),$$<) -MMD
 endef
 
 .PHONY: all clean directories 
@@ -100,7 +97,7 @@ all: directories $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(HIDE)echo Linking $@
-	$(HIDE)$(CXX) $(OBJS) -o $(BUILDDIR)/$(TARGET) $(LIBDIR) $(LIBS)
+	ar -rcs $(BUILDDIR)/$(TARGET) $<
 
 # Include dependencies
 -include $(DEPS)
