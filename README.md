@@ -1,8 +1,10 @@
-# MB compute project
+# MB compute project 
+![Test build](https://github.com/Rr42/mbcompute/actions/workflows/c-cpp.yml/badge.svg)
+
 This is a math compute library and accompanying application that provides a console interface.
 
 ## List of supported functions
-* 
+* Solve basic mathematical expressions
 
 # Building project from scratch
 ## Installing requirements
