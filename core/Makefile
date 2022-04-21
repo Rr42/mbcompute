@@ -1,7 +1,7 @@
 ############################################################################
 # File name: Makefile (mb_compute_core/)
 # Dev: GitHub@Rr42
-# Code version: v1.0
+# Code version: v1.1
 # License:
 #  Copyright 2022 Ramana R
 #
@@ -24,7 +24,8 @@
 # Set project directory one level above of Makefile directory. $(CURDIR) is a GNU make variable containing the path to the current working directory
 PROJDIR := $(realpath $(CURDIR)/..)
 SOURCEDIR := $(PROJDIR)
-BUILDDIR := $(PROJDIR)/build
+BUILDPTH := build
+BUILDDIR := $(PROJDIR)/$(BUILDPTH)
 
 # Name of the final executable
 TARGET = mbconsole
@@ -61,6 +62,7 @@ DEPS = $(OBJS:.o=.d)
 
 # Name the compiler
 CXX = g++
+CXXOPTS = 
 
 # OS specific part
 ifeq ($(OS),Windows_NT)
@@ -91,7 +93,7 @@ endif
 define generateRules
 $(1)/%.o: %.cpp
 	$(HIDE)@echo Building $$@
-	$(HIDE)$(CXX) -c $$(INCLUDES) -o $$(subst /,$$(PSEP),$$@) $$(subst /,$$(PSEP),$$<) -MMD
+	$(HIDE)$(CXX) $(CXXOPTS) -c -Wall $$(INCLUDES) -o $$(subst /,$$(PSEP),$$@) $$(subst /,$$(PSEP),$$<) -MMD
 endef
 
 .PHONY: all clean directories 
@@ -100,7 +102,7 @@ all: directories $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(HIDE)echo Linking $@
-	$(HIDE)$(CXX) $(OBJS) -o $(BUILDDIR)/$(TARGET) $(LIBDIR) $(LIBS)
+	$(HIDE)$(CXX) $(CXXOPTS) -Wall $(OBJS) -o $(BUILDDIR)/$(TARGET) -static $(LIBDIR) $(LIBS)
 
 # Include dependencies
 -include $(DEPS)
@@ -113,8 +115,7 @@ directories:
 
 # Remove all objects, dependencies and executable files generated during the build
 clean:
-	$(HIDE)$(RMDIR) $(subst /,$(PSEP),$(TARGETDIRS)) $(ERRIGNORE)
-	$(HIDE)$(RM) $(BUILDDIR)/$(TARGET) $(ERRIGNORE)
-	$(HIDE)echo '##################'
+	$(HIDE)$(RM) $(BUILDDIR)/$(TARGET) $(BUILDDIR)/*.exe $(ERRIGNORE) 
+	$(HIDE)$(RMDIR) $(subst /,$(PSEP),$(TARGETDIRS)) $(BUILDDIR) $(ERRIGNORE)
 	$(HIDE)@echo Cleaning done !
 	$(HIDE)echo '##################'

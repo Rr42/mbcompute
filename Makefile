@@ -1,7 +1,7 @@
 ############################################################################
 # File name: Makefile (./)
 # Dev: GitHub@Rr42
-# Code version: v1.0
+# Code version: v1.1
 # License:
 #  Copyright 2022 Ramana R
 #
@@ -39,14 +39,71 @@ else
 	HIDE = @
 endif
 
+# Configuring based on target OS
+ifeq ($(TARGETOS),LINUX)
+# Linux (x64)
+# Setting build path
+	BUILDPTH := build/linux
+# Setting complier
+	# CXX := x86_64-linux-gnu-g++
+	CXX := g++
+	CXXOPTS := 
+# Setting archiver
+	# AR := x86_64-linux-gnu-ar
+	AR := ar
+	AROPTS := 
+else ifeq ($(TARGETOS),WIN64)
+# Windows (x64) (using MINGW64)
+# Setting build path
+	BUILDPTH := build/win64
+# Setting complier
+	CXX := x86_64-w64-mingw32-g++
+	CXXOPTS := 
+# Setting archiver
+	AR := x86_64-w64-mingw32-ar
+	AROPTS := 
+else ifeq ($(TARGETOS),WIN32)
+# Windows (x32) (using MINGW64)
+# Setting build path
+	BUILDPTH := build/win32
+# Setting complier
+	CXX := i686-w64-mingw32-g++
+	CXXOPTS := 
+# Setting archiver
+	AR := i686-w64-mingw32-ar
+	AROPTS := 
+else
+# Default
+# Setting build path
+	BUILDPTH := build
+# Setting complier
+	CXX := g++
+	CXXOPTS := 
+# Setting archiver
+	AR := ar
+	AROPTS := 
+endif
+
 TOPTARGETS := all clean
 
-$(TOPTARGETS): $(TARGETS)
+selftest:
+	$(HIDE)echo '####################################'
+	$(HIDE)echo '              Self test             '
+	$(HIDE)echo '####################################'
+
+config:
+	$(HIDE)echo '####################################'
+	$(HIDE)echo '           Configuration            '
+	$(HIDE)echo '####################################'
+	$(HIDE)echo Target platform: $(TARGETOS)
+	$(HIDE)echo Build directory: $(BUILDPTH)
+	$(HIDE)echo Using CXX: $(CXX)
+
+$(TOPTARGETS): config $(TARGETS)
 $(TARGETS):
-	$(eval export VERBOSE := $(VERBOSE))
 	$(HIDE)echo '####################################'
 	$(HIDE)echo Processing $@
 	$(HIDE)echo '####################################'
-	$(HIDE)$(MAKE) -C $@ $(MAKECMDGOALS)
+	$(HIDE)$(MAKE) -C $@ VERBOSE=$(VERBOSE) BUILDPTH=$(BUILDPTH) CXX=$(CXX) CXXOPTS=$(CXXOPTS) AR=$(AR) AROPTS=$(AROPTS) $(MAKECMDGOALS)
 
-.PHONY: $(TOPTARGETS) $(TARGETS)
+.PHONY: config $(TOPTARGETS) $(TARGETS)

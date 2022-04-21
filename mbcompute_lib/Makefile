@@ -1,7 +1,7 @@
 ############################################################################
 # File name: Makefile (mbcompute_lib/)
 # Dev: GitHub@Rr42
-# Code version: v1.0
+# Code version: v1.1
 # License:
 #  Copyright 2022 Ramana R
 #
@@ -24,7 +24,8 @@
 # Set project directory one level above of Makefile directory. $(CURDIR) is a GNU make variable containing the path to the current working directory
 PROJDIR := $(realpath $(CURDIR)/..)
 SOURCEDIR := $(PROJDIR)
-BUILDDIR := $(PROJDIR)/build/lib
+BUILDPTH := build
+BUILDDIR := $(PROJDIR)/$(BUILDPTH)/lib
 
 # Name of the final executable
 TARGET = libmbcomputengine.a
@@ -58,6 +59,11 @@ DEPS = $(OBJS:.o=.d)
 
 # Name the compiler
 CXX = g++
+CXXOPTS = 
+
+# Name the archiver
+AR = ar
+AROPTS = 
 
 # OS specific part
 ifeq ($(OS),Windows_NT)
@@ -88,7 +94,7 @@ endif
 define generateRules
 $(1)/%.o: %.cpp
 	$(HIDE)@echo Building $$@
-	$(HIDE)$(CXX) -c $$(INCLUDES) $$(LIBDIR) $$(LIBS) -o $$(subst /,$$(PSEP),$$@) $$(subst /,$$(PSEP),$$<) -MMD
+	$(HIDE)$(CXX) $(CXXOPTS) -c -Wall $$(INCLUDES) $$(LIBDIR) $$(LIBS) -o $$(subst /,$$(PSEP),$$@) $$(subst /,$$(PSEP),$$<) -MMD
 endef
 
 .PHONY: all clean directories 
@@ -97,7 +103,7 @@ all: directories $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(HIDE)echo Linking $@
-	ar -rcs $(BUILDDIR)/$(TARGET) $<
+	$(AR) $(AROPTS) -rcs $(BUILDDIR)/$(TARGET) $<
 
 # Include dependencies
 -include $(DEPS)
@@ -110,8 +116,7 @@ directories:
 
 # Remove all objects, dependencies and executable files generated during the build
 clean:
-	$(HIDE)$(RMDIR) $(subst /,$(PSEP),$(TARGETDIRS)) $(ERRIGNORE)
 	$(HIDE)$(RM) $(BUILDDIR)/$(TARGET) $(ERRIGNORE)
-	$(HIDE)echo '##################'
+	$(HIDE)$(RMDIR) $(subst /,$(PSEP),$(TARGETDIRS)) $(BUILDDIR) $(ERRIGNORE)
 	$(HIDE)@echo Cleaning done !
 	$(HIDE)echo '##################'

@@ -17,7 +17,7 @@
 *  See the License for the specific language governing permissions and
 *  limitations under the License.
 * Description:
-*  Console intraface for the MB compute engine.
+*  Console interface for the MB compute engine.
 ****************************************************************************/
 
 /* Includes */
@@ -97,7 +97,7 @@ void self_cleanup(void){
     std::cout << "Exiting..." << std::endl;
 }
 
-int main(){
+int main(int argc, char *argv[]){
     /* Register signal and signal handler */
     if (signal(SIGABRT, signal_callback_handler) == SIG_ERR
         or signal(SIGFPE, signal_callback_handler) == SIG_ERR
@@ -122,6 +122,7 @@ int main(){
         /* Display ready message and wait for user input */
         std::cout << CONSOLE_READY_MSG;
         std::cout.flush();
+        std::cin.clear();
         std::getline(std::cin, input);
 
         /* Skip processing if input is empty */

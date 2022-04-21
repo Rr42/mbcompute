@@ -13,5 +13,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: make 
-      run: make all
+    - name: Install ming64
+      run: sudo apt-get install -y mingw-w64
+    - name: Build for Linux (x64)
+      run: make TARGETOS=LINUX all
+    - name: Build for Windows (x64)
+      run: make TARGETOS=WIN64 all
+    - name: Build for Windows (x32)
+      run: make TARGETOS=WIN32 all
+    - name: cleanup
+      run: make clean
