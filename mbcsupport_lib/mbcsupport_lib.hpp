@@ -43,10 +43,10 @@ public:
     /* Distructor for CLIParser class */
     ~CLIParser(void);
 
-    /* Function returns non empty string is a value is found for given argument */
+    /* Method returns non empty string is a value is found for given argument */
     const std::string getCmdOption(const std::string option);
 
-    /* Function returns true if option exists in the argument list */
+    /* Method returns true if option exists in the argument list */
     bool cmdOptionExists(const std::string option);
 
 };

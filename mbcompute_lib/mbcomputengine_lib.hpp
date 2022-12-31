@@ -45,12 +45,12 @@ public:
     /* Distructor for Engine class */
     ~Engine(void);
 
-    /* Function to load an expression line into the command buffer. */
+    /* Method to load an expression line into the command buffer. */
     bool load(std::string);
 
-    /* Function will try to evaluate the expression in the command buffer.
-      If the evaluation was successfull the command buffer will be cleared and functionwill return true
-      If the evaluation fails the function will return false. */
+    /* Method will try to evaluate the expression in the command buffer.
+      If the evaluation was successfull the command buffer will be cleared and method will return true
+      If the evaluation fails the method will return false. */
     bool eval(void);
 };
 
@@ -60,7 +60,7 @@ private:
     std::vector<std::string> _expression_infix;
     std::vector<std::string> _expression_postfix;
 
-    /* Function returns precedence of the operator given.
+    /* Method returns precedence of the operator given.
       The return value will be in the range [0, 3] */
     int getOPP(char);
 public:
@@ -71,28 +71,29 @@ public:
     /* Distructor for Evaluator class */
     ~Evaluator(void);
 
-    /* Function parses the given string expression into a workable list.
+    /* Method parses the given string expression into a workable list.
       The given string will be split into numbers (double in string form)
       and all other characters while taking SI prefixes into consideration.
 
-      This function returns its object so operations can be cascaded. */
+      This method returns its object so operations can be cascaded. */
     Evaluator parseExpr(std::string);
 
-    /* Function converts internal infix expression buffer to postfix.
-      This function returns its object so operations can be cascaded. */
+    /* Method converts internal infix expression buffer to postfix.
+      This method returns its object so operations can be cascaded. */
     Evaluator convertToPostfix(void);
 
-    /* Function evaluates the given postfix expression. */
+    /* Method evaluates the given postfix expression. */
     double evaluatePostfix(void);
 
-    /* Function returns the internal infix expression buffer. */
+    /* Method clears all buffers. */
+    void clear(void);
+
+    /* Method returns the internal infix expression buffer. */
     const std::vector<std::string> getInfixBuffer(void);
 
-    /* Function returns the internal postfix expression buffer. */
+    /* Method returns the internal postfix expression buffer. */
     const std::vector<std::string> getPostfixBuffer(void);
 };
-
-/* Common function headers */
 
 }
 

@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mb_compute_core.cpp
-* Version: v1.0
+* Version: v1.0.1
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2022 Ramana R
@@ -138,6 +138,9 @@ int main(int argc, char *argv[]){
         test_eng.convertToPostfix();
         std::cout << "[DEBUG] Postfix: " << mbcs::get_printable_vector(test_eng.getPostfixBuffer()) << std::endl;
         std::cout << "[DEBUG] Result: " << test_eng.evaluatePostfix() << std::endl;
+
+        /* Clear buffers */
+        test_eng.clear();
     } while (input != "exit");
 
     /* Perform all cleanup duties before exiting */

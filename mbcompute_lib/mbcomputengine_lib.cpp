@@ -218,7 +218,7 @@ Evaluator Evaluator::parseExpr(std::string expr){
         }
     }
 
-    /* Return back object so functions can be cascaded */
+    /* Return back object so methods can be cascaded */
     return *this;
 }
 
@@ -299,8 +299,13 @@ Evaluator Evaluator::convertToPostfix(void){
         }
     }
 
-    /* Return back object so functions can be cascaded */
+    /* Return back object so methods can be cascaded */
     return *this;
+}
+
+void Evaluator::clear(void){
+    this->_expression_infix.clear();
+    this->_expression_postfix.clear();
 }
 
 /* Algorithm to evaluate a postfix expression
@@ -347,7 +352,5 @@ double Evaluator::evaluatePostfix(void){
     }
     return stack.top();
 }
-
-/* Common function definitions */
 
 }
