@@ -32,15 +32,21 @@ sudo apt install mingw-w64
 
 ## Building the project
 ### For a Linux target
-The library and console application in this project can be built for Linux (x64) using  default GNU complier by running the below command in the top project directory.
+The library and console application in this project can be built for Linux (x64) using default GNU complier by running the below command in the top project directory.
 ```Bash
 make TARGETOS=LINUX all
 ```
 
-### For a Windows target
-The library and console application in this project can be built for Windows (x64) by running MINGW64's win32 complier by running the below command in the top project directory.
+### For a Windows x64 target
+The library and console application in this project can be built for Windows (x64) using MINGW64's win32 complier by running the below command in the top project directory.
 ```Bash
 make TARGETOS=WIN64 all
+```
+
+### For a Windows x86 target
+The library and console application in this project can be built for Windows (x86) using MINGW64's win32 complier by running the below command in the top project directory.
+```Bash
+make TARGETOS=WIN32 all
 ```
 
 ## Cleanup
@@ -58,8 +64,8 @@ To clean files specifically from the Windows (x64) build run the below command.
 make TARGETOS=WIN64 clean
 ```
 
-### For a Windows x64 target
-To clean files specifically from the Windows (x32) build run the below command.
+### For a Windows x86 target
+To clean files specifically from the Windows (x86) build run the below command.
 ```Bash
 make TARGETOS=WIN32 clean
 ```

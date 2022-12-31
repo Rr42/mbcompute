@@ -19,7 +19,7 @@ jobs:
       run: make TARGETOS=LINUX all
     - name: Build for Windows (x64)
       run: make TARGETOS=WIN64 all
-    - name: Build for Windows (x32)
+    - name: Build for Windows (x86)
       run: make TARGETOS=WIN32 all
     - name: cleanup
       run: make clean
