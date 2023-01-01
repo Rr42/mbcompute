@@ -1,7 +1,7 @@
 #!/bin/bash
 #############################################################################
-# File name: test1.sh
-# Version: v1.1
+# File name: test2.sh
+# Version: v1.0
 # Dev: GitHub@Rr42
 # License:
 #  Copyright 2022 Ramana R
@@ -18,7 +18,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 # Description:
-#  First self test for console application.
+#  Second self test for console application.
 #############################################################################
 
 # Check if the console application name+path was passed
@@ -34,10 +34,10 @@ fi
 options="--silent"
 
 # Run test commands and get the last line of the output fro comparison
-printf "Running test: 12.503+15.43*12-(2m + 5M)\n"
-result=`$mb_app $options --command="12.503+15.43*12-(2m + 5M)\nexit" | tail -n 1`
+printf "Running test: a1=b=d=10*3.1415*10\n"
+result=`$mb_app $options --command="a1=b=d=10*3.1415*10\nexit" | tail -n 1`
 printf "Result: $result"
-if [ "$result" == "-4.9998e+06" ]; then
+if [ "$result" == "314.15" ]; then
     printf " - PASS\n"
 else
     printf " - FAIL\n"

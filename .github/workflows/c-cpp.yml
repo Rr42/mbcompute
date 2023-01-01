@@ -21,5 +21,7 @@ jobs:
       run: make TARGETOS=WIN64 all
     - name: Build for Windows (x86)
       run: make TARGETOS=WIN32 all
+    - name: Test Linux (x64) build
+      run: make selftest
     - name: cleanup
       run: make clean

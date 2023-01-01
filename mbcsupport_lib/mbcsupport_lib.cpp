@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mbcsupport_lib.cpp
-* Version: v1.0
+* Version: v1.1
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2022 Ramana R
@@ -17,7 +17,8 @@
 *  See the License for the specific language governing permissions and
 *  limitations under the License.
 * Description:
-*  Display library implimentation for the 8x11 LED display.
+*  Library containing support functions and classes
+*  for the MB compute engine.
 ****************************************************************************/
 
 #include "mbcsupport_lib.hpp"
@@ -32,18 +33,20 @@ CLIParser::CLIParser (int argc, char **argv){
         this->tokens.push_back(std::string(argv[i]));
 }
 
-const std::string CLIParser::getCmdOption(const std::string option){
-    std::vector<std::string>::const_iterator itr;
-    itr = std::find(this->tokens.begin(), this->tokens.end(), option);
-    if (itr != this->tokens.end() && ++itr != this->tokens.end())
-        return *itr;
+CLIParser::~CLIParser(void){
+}
 
-    static const std::string empty_string("");
-    return empty_string;
+const std::string CLIParser::getCmdOption(const std::string option){
+    /* Searchfor the substring option in the loaded tokens */
+    std::vector<std::string>::const_iterator itr;
+    itr = std::find_if(this->tokens.begin(), this->tokens.end(), [option](const std::string& str){ return str.find(option) != std::string::npos; });
+    if (itr != this->tokens.end())
+        return *itr;
+    return "";
 }
 
 bool CLIParser::cmdOptionExists(const std::string option){
-    return std::find(this->tokens.begin(), this->tokens.end(), option) != this->tokens.end();
+    return std::find_if(this->tokens.begin(), this->tokens.end(), [option](const std::string& str){ return str.find(option) != std::string::npos; }) != this->tokens.end();
 }
 
 /* Common function definitions */
@@ -51,14 +54,16 @@ bool CLIParser::cmdOptionExists(const std::string option){
 /* Function converts a std::vector into a printable string */
 // std::string get_printable_vector(std::vector<std::string> array){
 template<typename element_type> std::string get_printable_vector(const std::vector<element_type> array){
-    std::string printable = "[" + std::to_string(array.size()) + "]{ ";
+    std::ostringstream printable;
+    printable << "[" << array.size() << "]{ ";
     for (auto element : array)
-        printable += element + " ";
-    printable += "}";
-    return printable;
+        printable << element << " ";
+    printable << "}";
+    return printable.str();
 }
 
-/* Forward decleration of supported/tested forms of get_printable_vector template */
+/* Forward deceleration of supported/tested forms of get_printable_vector template */
 template std::string get_printable_vector(const std::vector<std::string>);
+template std::string get_printable_vector(const std::vector<double>);
 
 }

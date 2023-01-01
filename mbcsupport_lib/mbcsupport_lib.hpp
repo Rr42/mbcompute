@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mbcsupport_lib.hpp
-* Version: v1.0
+* Version: v1.1
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2022 Ramana R
@@ -17,7 +17,8 @@
 *  See the License for the specific language governing permissions and
 *  limitations under the License.
 * Description:
-*  Display library header for the 8x11 LED display.
+*  Library header for support functions and classes
+*  for the MB compute engine.
 ****************************************************************************/
 #ifndef __MB_COMPUTE_SUPPORT_LIB__
 
@@ -26,6 +27,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <sstream>
 
 namespace mbcs{
 
@@ -40,7 +42,7 @@ public:
     /* Constructor for CLIParser class */
     CLIParser(int argc, char **argv);
 
-    /* Distructor for CLIParser class */
+    /* Destructor for CLIParser class */
     ~CLIParser(void);
 
     /* Method returns non empty string is a value is found for given argument */

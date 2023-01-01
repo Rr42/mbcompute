@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mbcomputengine_lib.hpp
-* Version: v1.0
+* Version: v1.1
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2022 Ramana R
@@ -17,7 +17,8 @@
 *  See the License for the specific language governing permissions and
 *  limitations under the License.
 * Description:
-*  Display library header for the 8x11 LED display.
+*  The MB compute engine library header containing declarations for
+*  expression parsing and evaluation classes.
 ****************************************************************************/
 #ifndef __MB_COMPUTE_ENGINE_LIB__
 
@@ -28,31 +29,13 @@
 #include <cstring>
 #include <algorithm>
 #include <stack>
+#include <sstream>
+#include <cassert>
+#include <regex>
 
 namespace mbc{
 
 /* Class declarations */
-
-/* Core compute engine class */
-class Engine{
-private:
-    std::vector<std::string> _cmdBuffer;
-    std::vector<std::string> _evalBuffer;
-public:
-    /* Constructor for Engine class */
-    Engine();
-
-    /* Distructor for Engine class */
-    ~Engine(void);
-
-    /* Method to load an expression line into the command buffer. */
-    bool load(std::string);
-
-    /* Method will try to evaluate the expression in the command buffer.
-      If the evaluation was successfull the command buffer will be cleared and method will return true
-      If the evaluation fails the method will return false. */
-    bool eval(void);
-};
 
 /* Evaluator class for processing mathematical expressions */
 class Evaluator{
@@ -68,7 +51,7 @@ public:
     Evaluator(const std::string);
     Evaluator(void);
 
-    /* Distructor for Evaluator class */
+    /* Destructor for Evaluator class */
     ~Evaluator(void);
 
     /* Method parses the given string expression into a workable list.
@@ -82,7 +65,8 @@ public:
       This method returns its object so operations can be cascaded. */
     Evaluator convertToPostfix(void);
 
-    /* Method evaluates the given postfix expression. */
+    /* Method evaluates the given postfix expression.
+      Returns 0 if no result was generated. */
     double evaluatePostfix(void);
 
     /* Method clears all buffers. */
@@ -93,6 +77,55 @@ public:
 
     /* Method returns the internal postfix expression buffer. */
     const std::vector<std::string> getPostfixBuffer(void);
+};
+
+/* Core compute engine class */
+class Engine{
+private:
+    /* Executor object */
+    mbc::Evaluator _runner;
+
+    /* Command queue */
+    std::vector<std::string> _cmdBuffer;
+
+    /* Result queue and wiper */
+    std::vector<std::string> _evalBuffer;
+    std::size_t _evalWiper;
+
+    /* Method returns true if given variable name is valid */
+    bool checkVarName(std::string);
+public:
+    /* Expression variables */
+    std::vector<std::string> _varNames;
+    std::vector<double> _varValues;
+    /* Constructor for Engine class */
+    Engine();
+
+    /* Destructor for Engine class */
+    ~Engine(void);
+
+    /* Method to load an expression line into the command buffer.
+      This method returns its object so operations can be cascaded. */
+    Engine load(std::string);
+
+    /* Method will try to evaluate all the expression(s) loaded into the command buffer.
+      If the evaluation was successful the command buffer will be cleared.
+      This method returns its object so operations can be cascaded. */
+    Engine eval(void);
+
+    /* Method returns the oldest result that hasn't been returned form the results queue
+      If there are no further results the method will return "null".
+
+      For example if the return queue contains the following results:
+        [1, 0.9, 100, 10e-19]
+      Calling the gerResult method in succession will return:
+        getResult() -> "1"
+        getResult() -> "0.9"
+        getResult() -> "100"
+        getResult() -> "10e-19"
+        getResult() -> ""
+    */
+    std::string getResult(void);
 };
 
 }

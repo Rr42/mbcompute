@@ -30,6 +30,9 @@ LIBS = mbcompute_lib mbcsupport_lib
 # Subdirectories/apps to make
 APPS = core
 
+# Self-test to run
+SELFTEST = selftests
+
 TARGETS = $(LIBS) $(APPS)
 
 # Hide or not the calls depending of VERBOSE
@@ -90,6 +93,7 @@ selftest:
 	$(HIDE)echo '####################################'
 	$(HIDE)echo '              Self test             '
 	$(HIDE)echo '####################################'
+	$(HIDE)$(MAKE) -C $(SELFTEST) VERBOSE=$(VERBOSE) all
 
 config:
 	$(HIDE)echo '####################################'

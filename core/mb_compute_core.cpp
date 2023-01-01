@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mb_compute_core.cpp
-* Version: v1.0.1
+* Version: v1.1
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2022 Ramana R
@@ -23,9 +23,10 @@
 /* Includes */
 #include <iostream>
 #include <string>
+#include <regex>
 #include <signal.h>
 
-/* Custom libraties */
+/* Custom libraries */
 #include "mbcomputengine_lib.hpp"
 #include "mbcsupport_lib.hpp"
 
@@ -93,8 +94,9 @@ void signal_callback_handler(int signal_num) {
 }
 
 /* Function to perform final cleanup before exiting */
-void self_cleanup(void){
-    std::cout << "Exiting..." << std::endl;
+void self_cleanup(bool silentFlag = false){
+    if (!silentFlag)
+        std::cout << "Exiting..." << std::endl;
 }
 
 int main(int argc, char *argv[]){
@@ -108,42 +110,108 @@ int main(int argc, char *argv[]){
         std::cerr << "[ERROR] [ERROR_CODE=" << errno << "] Core signal handlers could not be registered" << std::endl;
     }
 
+    /* Handle CLI flags and options */
+    mbcs::CLIParser CLIparser(argc, argv);
+    bool pipeFlag = false;
+    bool silentFlag = false;
+    std::string command = "";
+    if (CLIparser.cmdOptionExists("-h") || CLIparser.cmdOptionExists("--help")){
+        std::cout << "Usage mbconsole [OPTIONS]" << std::endl;
+        std::cout << std::endl;
+        std::cout << "Options:" << std::endl;
+        std::cout << "  -h, --help           Show this message" << std::endl;
+        std::cout << "                       (This option will take the highest precedence)" << std::endl;
+        std::cout << "  -p, --piped-input    Operates in piped input/output mode" << std::endl;
+        std::cout << "  -s, --silent         Operates in silent mode" << std::endl;
+        std::cout << "  -c=s, --command=s    Executes given command before continuing" << std::endl;
+        /* Perform all cleanup duties and exiting */
+        self_cleanup();
+        return 0;
+    }
+    if (CLIparser.cmdOptionExists("-s") || CLIparser.cmdOptionExists("--silent"))
+        silentFlag = true;
+    if (CLIparser.cmdOptionExists("-p") || CLIparser.cmdOptionExists("--piped-input"))
+        pipeFlag = true;
+    if (CLIparser.cmdOptionExists("-c")){
+        command = CLIparser.getCmdOption("-c");
+        /* Remove the option part */
+        command.erase(0, 3);
+    }
+    else if (CLIparser.cmdOptionExists("--command")){
+        command = CLIparser.getCmdOption("--command");
+        /* Remove the option part */
+        command.erase(0, 5);
+    }
+    command = std::regex_replace(command, std::regex("\\\\n"), "\n");
+    if (!std::regex_search(command, std::regex("\n$")))
+        command += "\n";
+
     /* Init compute engine */
     mbc::Engine eng;
+
+    /* Process the given commands one line at a time */
+    if (!command.empty()){
+        /* If the command has multiple lines */
+        std::size_t pos = 0;
+        std::string cmd_line;
+        while ((pos = command.find("\n")) != std::string::npos) {
+            cmd_line = command.substr(0, pos);
+            /* Check the line is an exit command */
+            if (cmd_line == "exit"){
+                /* If so cleanup and exit */
+                self_cleanup(silentFlag);
+                return 0;
+            }
+            /* Load and execute the line */
+            eng.load(cmd_line);
+            eng.eval();
+            /* Print result to output */
+            std::cout << eng.getResult() << std::endl;
+            /* Clear command buffer for reading the next line */
+            command.erase(0, pos + 1);
+        }
+    }
 
     /* Console input buffer */
     std::string input;
 
     /* Console interface input loop */
-    // Test string: 12.503+15.43*12-(2m + 5M) >> -4.9998e+06
-    mbc::Evaluator test_eng;
+    // Test string 1: 12.503+15.43*12-(2m + 5M) >> -4.9998e+06
+    // Test string 2: a1=b=d=10*3.1415*10 >> 314.15
+    // Test string 3: _def=-1m*a1/10 >> -0.031415
     do
     {
         /* Display ready message and wait for user input */
-        std::cout << CONSOLE_READY_MSG;
-        std::cout.flush();
+        if (!silentFlag){
+            std::cout << CONSOLE_READY_MSG;
+            std::cout.flush();
+        }
         std::cin.clear();
         std::getline(std::cin, input);
+        /* Echo input is the pipe flag is present */
+        if (pipeFlag && !silentFlag)
+            std::cout << input << std::endl;
 
         /* Skip processing if input is empty */
         if (input.empty()){
-            std::cout << "[INFO] Empty input" << std::endl;
+            if (!silentFlag)
+                std::cout << "[INFO] Empty input" << std::endl;
             continue;
         } else if (input == "exit")
             break;
 
-        test_eng.parseExpr(input);
-        std::cout << "[DEBUG] Parsed: " << mbcs::get_printable_vector(test_eng.getInfixBuffer()) << std::endl;
+        /* Load the input expression into the engine */
+        eng.load(input);
 
-        test_eng.convertToPostfix();
-        std::cout << "[DEBUG] Postfix: " << mbcs::get_printable_vector(test_eng.getPostfixBuffer()) << std::endl;
-        std::cout << "[DEBUG] Result: " << test_eng.evaluatePostfix() << std::endl;
-
-        /* Clear buffers */
-        test_eng.clear();
+        /* Evaluate the loaded expression.
+          Note that multiple expression can be loaded before the eval method is called */
+        eng.eval();
+        print_verbose("[DEBUG] Variable names: "+mbcs::get_printable_vector(eng._varNames));
+        print_verbose("[DEBUG] Variable values: "+mbcs::get_printable_vector(eng._varValues));
+        std::cout << eng.getResult() << std::endl;
     } while (input != "exit");
 
     /* Perform all cleanup duties before exiting */
-    self_cleanup();
+    self_cleanup(silentFlag);
     return 0;
 }
