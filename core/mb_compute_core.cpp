@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mb_compute_core.cpp
-* Version: v1.1
+* Version: v1.1.1
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2022 Ramana R
@@ -142,9 +142,11 @@ int main(int argc, char *argv[]){
         /* Remove the option part */
         command.erase(0, 5);
     }
-    command = std::regex_replace(command, std::regex("\\\\n"), "\n");
-    if (!std::regex_search(command, std::regex("\n$")))
-        command += "\n";
+    if (!command.empty()){
+        command = std::regex_replace(command, std::regex("\\\\n"), "\n");
+        if (!std::regex_search(command, std::regex("\n$")))
+            command += "\n";
+    }
 
     /* Init compute engine */
     mbc::Engine eng;
