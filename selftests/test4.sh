@@ -1,6 +1,6 @@
 #!/bin/bash
 #############################################################################
-# File name: test2.sh
+# File name: test4.sh
 # Version: v1.0
 # Dev: GitHub@Rr42
 # License:
@@ -18,7 +18,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 # Description:
-#  Second self test for console application.
+#  First self test for console application.
 #############################################################################
 
 # Check if the console application name+path was passed
@@ -34,10 +34,10 @@ fi
 options="--silent"
 
 # Run test commands and get the last line of the output for comparison
-printf "Running test: a1=b=d=10*3.1415*10\n"
-result=`$mb_app $options --command="a1=b=d=10*3.1415*10\nexit" | tail -n 1`
+printf "Running test: ++1**++(10%%5--8)\n"
+result=`$mb_app $options --command="++1**++(10%--8)\nexit" | tail -n 1`
 printf "Result: $result"
-if [ "$result" == "314.15" ]; then
+if [ "$result" == "16" ]; then
     printf " - PASS\n"
 else
     printf " - FAIL\n"

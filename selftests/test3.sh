@@ -33,7 +33,7 @@ fi
 # Execution options
 options="--silent"
 
-# Run test commands and get the last line of the output fro comparison
+# Run test commands and get the last line of the output for comparison
 printf "Running test: _def=-1m*a1/10\n"
 result=`$mb_app $options --command="a1=b=d=10*3.1415*10\n_def=-1m*a1/10\nexit" | tail -n 1`
 printf "Result: $result"

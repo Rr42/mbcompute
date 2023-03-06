@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mb_compute_core.cpp
-* Version: v1.1.1
+* Version: v1.1.2
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2022 Ramana R
@@ -63,7 +63,7 @@ void signal_callback_handler(int signal_num) {
             exit(signal_num);
             break;
         case SIGFPE:
-            std::cerr << std::endl << "[ERROR] An Floating-Point Exception signal was raised by OS" << std::endl;
+            std::cerr << std::endl << "[ERROR] A Floating-Point Exception signal was raised by OS" << std::endl;
             exit(signal_num);
             break;
         case SIGILL:
@@ -79,11 +79,11 @@ void signal_callback_handler(int signal_num) {
             // exit(signal_num);
             break;
         case SIGSEGV:
-            std::cerr << std::endl << "[ERROR] An Segmentation Violation signal was raised by OS" << std::endl;
+            std::cerr << std::endl << "[ERROR] A Segmentation Violation signal was raised by OS" << std::endl;
             exit(signal_num);
             break;
         case SIGTERM:
-            std::cerr << std::endl << "[ERROR] An Terminate signal was raised by OS" << std::endl;
+            std::cerr << std::endl << "[ERROR] A Terminate signal was raised by OS" << std::endl;
             exit(signal_num);
             break;
         default:

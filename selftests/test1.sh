@@ -33,7 +33,7 @@ fi
 # Execution options
 options="--silent"
 
-# Run test commands and get the last line of the output fro comparison
+# Run test commands and get the last line of the output for comparison
 printf "Running test: 12.503+15.43*12-(2m + 5M)\n"
 result=`$mb_app $options --command="12.503+15.43*12-(2m + 5M)\nexit" | tail -n 1`
 printf "Result: $result"

@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mbcomputengine_lib.hpp
-* Version: v1.1
+* Version: v1.2
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2022 Ramana R
@@ -32,8 +32,49 @@
 #include <sstream>
 #include <cassert>
 #include <regex>
+#include <cmath>
+
+#include <iostream>
 
 namespace mbc{
+
+/* Operator help structure */
+struct OperatorHelp
+{
+    /* Operator precedence (lower value = higher precedence) */
+    unsigned int order;
+    /* Operator symbol */
+    std::string oop;
+    /* Operator category */
+    std::string cat;
+    /* Operator description */
+    std::string desc;
+};
+
+/* List of supported operators */
+const std::vector<OperatorHelp> SUPPORTED_OOPS{
+    {1,  "++", "Arithmetic", "Increment"},
+    {1,  "--", "Arithmetic", "Decrement"},
+    {2,  "**", "Arithmetic", "Power"},
+    {3,  "*",  "Arithmetic", "Multiply"},
+    {3,  "/",  "Arithmetic", "Divide"},
+    {3,  "%",  "Arithmetic", "Reminder"},
+    {4,  "+",  "Arithmetic", "Add"},
+    {4,  "-",  "Arithmetic", "Subtract"},
+    {5,  "<<", "Bitwise",    "Left shift"},
+    {5,  ">>", "Bitwise",    "Right shift"},
+    {6,  "<",  "Logical",    "Less than"},
+    {6,  ">",  "Logical",    "Grater than"},
+    {7,  "==", "Logical",    "Equals"},
+    {8,  "!=", "Logical",    "Not equals"},
+    {9,  "&",  "Bitwise",    "AND"},
+    {10,  "^",  "Bitwise",    "XOR"},
+    {11, "|",  "Bitwise",    "OR"},
+    {12, "!",  "Logical",    "NOT"},
+    {13, "&&", "Logical",    "AND"},
+    {14, "^^", "Logical",    "XOR"},
+    {15, "||", "Logical",    "OR"},
+};
 
 /* Class declarations */
 
@@ -43,9 +84,10 @@ private:
     std::vector<std::string> _expression_infix;
     std::vector<std::string> _expression_postfix;
 
+    unsigned int max_precedence;
     /* Method returns precedence of the operator given.
       The return value will be in the range [0, 3] */
-    int getOPP(char);
+    int getOPP(std::string);
 public:
     /* Constructors for Evaluator class */
     Evaluator(const std::string);

@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mbcomputengine_lib.cpp
-* Version: v1.1
+* Version: v1.2
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2022 Ramana R
@@ -61,6 +61,14 @@ Engine Engine::eval(void){
     this->_evalBuffer.clear();
     /* Reset the eval wiper */
     this->_evalWiper = 0;
+    /* Check for special commands */
+    if (this->_cmdBuffer[0] == "help"){
+        std::string help_str = "Supported operations:\n";
+        for (OperatorHelp ioh : SUPPORTED_OOPS)
+            help_str += ioh.cat+" "+ioh.desc+" [Precedence: "+std::to_string(ioh.order)+"]: "+ioh.oop+"\n";
+        this->_evalBuffer.push_back(help_str);
+        return *this;
+    }
     /* Loop through all commands in queue and evaluate them */
     std::ostringstream str_stream_obj;
     for (std::string cmd : this->_cmdBuffer){
@@ -148,6 +156,11 @@ Evaluator::Evaluator(const std::string expression){
 }
 
 Evaluator::Evaluator(void){
+    /* Extract the highest precedence of all supported operators */
+    this->max_precedence = 0;
+    for (OperatorHelp oh : SUPPORTED_OOPS)
+        if (this->max_precedence < oh.order)
+            this->max_precedence = oh.order;
 }
 
 Evaluator::~Evaluator(void){
@@ -161,19 +174,13 @@ const std::vector<std::string> Evaluator::getPostfixBuffer(void){
     return this->_expression_postfix;
 }
 
-int Evaluator::getOPP(char opr){
-    switch (opr){
-        case '+':
-        case '-':
-            return 1;
-        case '*':
-        case '/':
-            return 2;
-        case '^':
-            return 3;
-        default:
-            return 0;
-    }
+int Evaluator::getOPP(std::string opr){
+    auto itr = std::find_if(SUPPORTED_OOPS.begin(), SUPPORTED_OOPS.end(), [opr](OperatorHelp item){return opr == item.oop;});
+    /* Check if the requested operator was found */
+    if (itr != SUPPORTED_OOPS.end())
+        return this->max_precedence+1 - (*itr).order;
+    else
+        return 0;
 }
 
 /* SI prefixes
@@ -314,8 +321,11 @@ Evaluator Evaluator::parseExpr(std::string expr){
                             /* Reset the skip flag */
                             flag_sci_skip = false;
                         } else{
-                            /* ![ALERT]! something is wrong! */
+                            /* Number has ended and a operator has started! */
                             this->_expression_infix.push_back(std::string(1, *it));
+                            /* Check if this is a two character operator */
+                            if (SUPPORTED_OOPS.end() != std::find_if(SUPPORTED_OOPS.begin(), SUPPORTED_OOPS.end(), [it](OperatorHelp item){return item.oop == (*it)+std::string(1, *(it+1));}))
+                                this->_expression_infix.back() += std::string(1, *(++it));
                             /* Mark the end of a number */
                             flag_number = false;
                         }
@@ -335,8 +345,11 @@ Evaluator Evaluator::parseExpr(std::string expr){
             } else{
                 /* Append all other characters as is */
                 this->_expression_infix.push_back(std::string(1, *it));
+                /* Check if this is a two character operator */
+                if (SUPPORTED_OOPS.end() != std::find_if(SUPPORTED_OOPS.begin(), SUPPORTED_OOPS.end(), [it](OperatorHelp item){return item.oop == (*it)+std::string(1, *(it+1));}))
+                    this->_expression_infix.back() += std::string(1, *(++it));
                 /* Check if this is a negative number */
-                if (*it == '-' && isdigit(*(it+1)))
+                else if (*it == '-' && isdigit(*(it+1)))
                     flag_number = true;
                 else
                     flag_number = false;
@@ -390,18 +403,18 @@ Evaluator Evaluator::convertToPostfix(void){
                     this->_expression_postfix.push_back(stack.top());
                     stack.pop();
                 }
-            if(*it == "]")
+            else if(*it == "]")
                 while(stack.top() != "["){
                     this->_expression_postfix.push_back(stack.top());
                     stack.pop();
                 }
-            if(*it == "}")
+            else if(*it == "}")
                 while(stack.top() != "{"){
                     this->_expression_postfix.push_back(stack.top());
                     stack.pop();
                 }
             stack.pop();
-        } else if(*it == "+" || *it == "-" || *it == "*" || *it == "/" || *it == "^")
+        } else if(SUPPORTED_OOPS.end() != std::find_if(SUPPORTED_OOPS.begin(), SUPPORTED_OOPS.end(), [it](OperatorHelp item){return item.oop == *it;}))
             /* If scanned character is operator */
             /* very first operator of expression is to be pushed on stack */
             if(stack.empty())
@@ -412,7 +425,7 @@ Evaluator Evaluator::convertToPostfix(void){
                  * final postfix expression, on other side if precedence order of instack operator is less than i
                  * coming operator, push incoming operator on stack.
                  */
-                if(getOPP(stack.top()[0]) >= getOPP((*it)[0])){
+                if(getOPP(stack.top()) >= getOPP(*it)){
                     this->_expression_postfix.push_back(stack.top());
                     stack.pop();
                     stack.push(*it);
@@ -451,12 +464,12 @@ void Evaluator::clear(void){
  */
 double Evaluator::evaluatePostfix(void){
     std::stack<double> stack;
- 
     /* Scan all elements one by one */
     for (auto it = this->_expression_postfix.begin(); it != this->_expression_postfix.end(); ++it){
         /* If the scanned element is an operand (number), push it to the stack. */
-        if (isdigit((*it)[0]) || ((*it)[0] == '-' && (*it).length() > 1 && isdigit((*it)[1])))
+        if (isdigit((*it)[0]) || ((*it)[0] == '-' && (*it).length() > 1 && isdigit((*it)[1]))){
             stack.push(std::atof((*it).c_str()));
+        }
         /* Process alphabets/variables */
         else if (isalpha((*it)[0]) || (*it)[0] == '_'){
             return 0;
@@ -466,23 +479,55 @@ double Evaluator::evaluatePostfix(void){
         else{
             double val1 = stack.top();
             stack.pop();
-            double val2 = stack.top();
-            stack.pop();
-
-            switch ((*it)[0]){
-                case '+':
-                    stack.push(val2 + val1);
-                    break;
-                case '-':
-                    stack.push(val2 - val1);
-                    break;
-                case '*':
-                    stack.push(val2 * val1);
-                    break;
-                case '/':
-                    stack.push(val2 / val1);
-                    break;
+            /* Don't pop another number if this is a single number operation */
+            double val2 = 0;
+            if (!(*it == "++" || *it == "--" || *it == "!")){
+                val2 = stack.top();
+                stack.pop();
             }
+
+            if (*it == "++")
+                stack.push(val1 + 1);
+            else if (*it == "+")
+                stack.push(val2 + val1);
+            else if (*it == "--")
+                stack.push(val1 - 1);
+            else if (*it == "-")
+                stack.push(val2 - val1);
+            else if (*it == "**")
+                stack.push(std::pow(val2, val1));
+            else if (*it == "*")
+                stack.push(val2 * val1);
+            else if (*it == "/")
+                stack.push(val2 / val1);
+            else if (*it == "%")
+                stack.push(std::fmod(val2, val1));
+            else if (*it == "^^")
+                stack.push(static_cast<double>(!val2 != !val1));
+            else if (*it == "^")
+                stack.push(static_cast<double>(static_cast<long long>(val2) ^ static_cast<long long>(val1)));
+            else if (*it == "||")
+                stack.push(static_cast<double>(val2 || val1));
+            else if (*it == "|")
+                stack.push(static_cast<double>(static_cast<long long>(val2) | static_cast<long long>(val1)));
+            else if (*it == "&&")
+                stack.push(static_cast<double>(val2 && val1));
+            else if (*it == "&")
+                stack.push(static_cast<double>(static_cast<long long>(val2) & static_cast<long long>(val1)));
+            else if (*it == "<<")
+                stack.push(static_cast<double>(static_cast<long long>(val2) << static_cast<long long>(val1)));
+            else if (*it == "<")
+                stack.push(static_cast<double>(val2 < val1));
+            else if (*it == ">>")
+                stack.push(static_cast<double>(static_cast<long long>(val2) >> static_cast<long long>(val1)));
+            else if (*it == ">")
+                stack.push(static_cast<double>(val2 > val1));
+            else if (*it == "!=")
+                stack.push(static_cast<double>(val2 != val1));
+            else if (*it == "!")
+                stack.push(static_cast<double>(!val1));
+            else if (*it == "==")
+                stack.push(static_cast<double>(val2 == val1));
         }
     }
 

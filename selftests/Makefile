@@ -1,7 +1,7 @@
 ############################################################################
 # File name: Makefile (selftest/)
 # Dev: GitHub@Rr42
-# Code version: v1.0
+# Code version: v1.1
 # License:
 #  Copyright 2022 Ramana R
 #
@@ -31,7 +31,7 @@ BUILDDIR := $(PROJDIR)/$(BUILDPTH)
 TARGET = $(BUILDDIR)/linux/mbconsole
 
 # Tests to run
-TESTS = ./test1.sh ./test2.sh ./test3.sh
+TESTS = ./test1.sh ./test2.sh ./test3.sh ./test4.sh
 
 # Decide whether the commands will be shown or not
 VERBOSE = FALSE
