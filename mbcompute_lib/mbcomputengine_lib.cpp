@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mbcomputengine_lib.cpp
-* Version: v1.2
+* Version: v1.3
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2023 Ramana R
@@ -30,6 +30,7 @@ namespace mbc{
 /* Engine class definitions */
 Engine::Engine(){
     this->_evalWiper = 0;
+    this->_error_message.clear();
 }
 
 Engine::~Engine(void){
@@ -59,6 +60,8 @@ Engine Engine::load(std::string line){
 Engine Engine::eval(void){
     /* Clear the eval buffer */
     this->_evalBuffer.clear();
+    /* Reset any error messages */
+    this->_error_message.clear();
     /* Reset the eval wiper */
     this->_evalWiper = 0;
     /* Check for special commands */
@@ -121,7 +124,10 @@ Engine Engine::eval(void){
                     }
                 }
 
-            /* Push the result to the result buffer */
+            /* Push the result to the result buffer
+            *   Using a string stream allows for a cleaner number representation
+            *   when converted to string unlike std::to_string().
+            */
             str_stream_obj << val;
             this->_evalBuffer.push_back(str_stream_obj.str());
             str_stream_obj.flush();
@@ -130,7 +136,10 @@ Engine Engine::eval(void){
             /* Parse expression */
             this->_runner.parseExpr(cmd);
             this->_runner.convertToPostfix();
-            /* Evaluate the expression and push it into the result queue */
+            /* Evaluate the expression and push it into the result queue
+            *   Using a string stream allows for a cleaner number representation
+            *   when converted to string unlike std::to_string().
+            */
             str_stream_obj << this->_runner.evaluatePostfix();
             this->_evalBuffer.push_back(str_stream_obj.str());
             str_stream_obj.flush();
@@ -150,6 +159,13 @@ std::string Engine::getResult(void){
     return this->_evalBuffer[this->_evalWiper++];
 }
 
+const std::string Engine::getErrorMsg(void){
+    if (!this->_runner.getErrorMsg().empty())
+        return this->_runner.getErrorMsg()+this->_error_message;
+    else
+        return this->_error_message;
+}
+
 /* Evaluator class definitions */
 Evaluator::Evaluator(const std::string expression){
     this->parseExpr(expression);
@@ -157,10 +173,10 @@ Evaluator::Evaluator(const std::string expression){
 
 Evaluator::Evaluator(void){
     /* Extract the highest precedence of all supported operators */
-    this->max_precedence = 0;
+    this->_max_precedence = 0;
     for (OperatorHelp oh : SUPPORTED_OOPS)
-        if (this->max_precedence < oh.order)
-            this->max_precedence = oh.order;
+        if (this->_max_precedence < oh.order)
+            this->_max_precedence = oh.order;
 }
 
 Evaluator::~Evaluator(void){
@@ -174,11 +190,15 @@ const std::vector<std::string> Evaluator::getPostfixBuffer(void){
     return this->_expression_postfix;
 }
 
+const std::string Evaluator::getErrorMsg(void){
+    return this->_error_message;
+}
+
 int Evaluator::getOPP(std::string opr){
     auto itr = std::find_if(SUPPORTED_OOPS.begin(), SUPPORTED_OOPS.end(), [opr](OperatorHelp item){return opr == item.oop;});
     /* Check if the requested operator was found */
     if (itr != SUPPORTED_OOPS.end())
-        return this->max_precedence+1 - (*itr).order;
+        return this->_max_precedence+1 - (*itr).order;
     else
         return 0;
 }
@@ -449,6 +469,7 @@ Evaluator Evaluator::convertToPostfix(void){
 }
 
 void Evaluator::clear(void){
+    this->_error_message.clear();
     this->_expression_infix.clear();
     this->_expression_postfix.clear();
 }
@@ -475,13 +496,27 @@ double Evaluator::evaluatePostfix(void){
             return 0;
         }
         /* If the scanned element is an operator, pop two
-        elements from stack apply the operator */
+        elements from stack to apply the operator */
         else{
+            /* If the stack is empty set the error message and return 0 */
+            if (stack.empty()){
+                this->_error_message += "[Evaluator] ERROR: No operands where given to the operator "+*it+"!\n";
+                return 0;
+            }
             double val1 = stack.top();
             stack.pop();
             /* Don't pop another number if this is a single number operation */
             double val2 = 0;
             if (!(*it == "++" || *it == "--" || *it == "!")){
+                /* If the stack is empty set the error message and return 0 */
+                if (stack.empty()){
+                    /* Check if this is a supported operator */
+                    if (SUPPORTED_OOPS.end() == std::find_if(SUPPORTED_OOPS.begin(), SUPPORTED_OOPS.end(), [it](OperatorHelp item){return item.oop == *it;}))
+                        this->_error_message += "[Evaluator] ERROR: Unsupported operator `"+*it+"`! You can use the `help` command to get a list of supported operators.\n";
+                    else
+                        this->_error_message += "[Evaluator] ERROR: Operator "+*it+" requires 2 operands however only one ("+std::to_string(val1)+") was given!\n";
+                    return 0;
+                }
                 val2 = stack.top();
                 stack.pop();
             }

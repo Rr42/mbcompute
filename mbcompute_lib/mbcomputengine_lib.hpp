@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mbcomputengine_lib.hpp
-* Version: v1.2
+* Version: v1.3
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2023 Ramana R
@@ -33,8 +33,6 @@
 #include <cassert>
 #include <regex>
 #include <cmath>
-
-#include <iostream>
 
 namespace mbc{
 
@@ -84,7 +82,9 @@ private:
     std::vector<std::string> _expression_infix;
     std::vector<std::string> _expression_postfix;
 
-    unsigned int max_precedence;
+    unsigned int _max_precedence;
+    std::string _error_message;
+
     /* Method returns precedence of the operator given.
       The return value will be in the range [0, 3] */
     int getOPP(std::string);
@@ -119,6 +119,9 @@ public:
 
     /* Method returns the internal postfix expression buffer. */
     const std::vector<std::string> getPostfixBuffer(void);
+
+    /* Method to return the internal error message (if any) */
+    const std::string getErrorMsg(void);
 };
 
 /* Core compute engine class */
@@ -133,6 +136,8 @@ private:
     /* Result queue and wiper */
     std::vector<std::string> _evalBuffer;
     std::size_t _evalWiper;
+
+    std::string _error_message;
 
     /* Method returns true if given variable name is valid */
     bool checkVarName(std::string);
@@ -168,6 +173,9 @@ public:
         getResult() -> ""
     */
     std::string getResult(void);
+
+    /* Method to return the internal error message (if any) */
+    const std::string getErrorMsg(void);
 };
 
 }
