@@ -18,7 +18,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 # Description:
-#  First self test for console application.
+#  Fourth self test for console application.
+#  This test checks some of the more advanced compute capabilities.
 #############################################################################
 
 # Check if the console application name+path was passed

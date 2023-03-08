@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mbcsupport_lib.cpp
-* Version: v1.1
+* Version: v1.1.1
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2023 Ramana R
@@ -39,14 +39,14 @@ CLIParser::~CLIParser(void){
 const std::string CLIParser::getCmdOption(const std::string option){
     /* Searchfor the substring option in the loaded tokens */
     std::vector<std::string>::const_iterator itr;
-    itr = std::find_if(this->tokens.begin(), this->tokens.end(), [option](const std::string& str){ return str.find(option) != std::string::npos; });
-    if (itr != this->tokens.end())
+    itr = std::find_if(this->tokens.cbegin(), this->tokens.cend(), [option](const std::string& str){ return str.find(option) != std::string::npos; });
+    if (itr != this->tokens.cend())
         return *itr;
     return "";
 }
 
 bool CLIParser::cmdOptionExists(const std::string option){
-    return std::find_if(this->tokens.begin(), this->tokens.end(), [option](const std::string& str){ return str.find(option) != std::string::npos; }) != this->tokens.end();
+    return std::find_if(this->tokens.cbegin(), this->tokens.cend(), [option](const std::string& str){ return str.find(option) != std::string::npos; }) != this->tokens.cend();
 }
 
 /* Common function definitions */

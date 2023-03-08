@@ -19,6 +19,7 @@
 #  limitations under the License.
 # Description:
 #  First self test for console application.
+#  This test checks some basic computing capabilities.
 #############################################################################
 
 # Check if the console application name+path was passed

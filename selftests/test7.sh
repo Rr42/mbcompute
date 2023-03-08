@@ -1,7 +1,7 @@
 #!/bin/bash
 #############################################################################
-# File name: test3.sh
-# Version: v1.1
+# File name: test7.sh
+# Version: v1.0
 # Dev: GitHub@Rr42
 # License:
 #  Copyright 2023 Ramana R
@@ -18,8 +18,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 # Description:
-#  Third self test for console application.
-#  This test further checks variables and assignment capabilities.
+#  Seventh self test for console application.
+#  This test checks some advanced hierarchical function call and
+#  definition capabilities.
 #############################################################################
 
 # Check if the console application name+path was passed
@@ -35,10 +36,10 @@ fi
 options="--silent"
 
 # Run test commands and get the last line of the output for comparison
-printf "Running test: _def=-1m*a1/10\n"
-result=`$mb_app $options --command="a1=b=d=10*3.1415*10\n_def=-1m*a1/10\nexit" | tail -n 1`
+printf "Running test: var2=1;var5=10;asc(bas(10*log(3**++5),var2))+2+lol(sdf(123, 4), fth(351+var5))\n"
+result=`$mb_app $options --command="asc(var1 \"double\") : var1-1 \"Test 1\"\nbas(var1 \"double\", var2 \"double\") : var1*asc(var2) \"Test 2\"\nlol(var1 \"double\", var2 \"double\", _var3=15 \"double\") : var1-(var2*_var3) \"Test 3\"\nsdf(var1 \"double\", var2 \"double\") : var1+bas(var2,-4) \"Test 4\"\nfth(var1 \"double\", var21=1 \"double\", var22=-3 \"double\") : var1+1+(var21*var22) \"Test 5\"\nvar2=1;var5=10;asc(bas(10*log(3**++5),var2))+2+lol(sdf(123, 4), fth(351+var5))\nexit" | tail -n 1`
 printf "Result: $result"
-if [ "$result" == "-0.031415" ]; then
+if [ "$result" == "-5281" ]; then
     printf " - PASS\n"
 else
     printf " - FAIL\n"

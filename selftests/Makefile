@@ -1,7 +1,7 @@
 ############################################################################
 # File name: Makefile (selftest/)
 # Dev: GitHub@Rr42
-# Code version: v1.1
+# Code version: v1.2
 # License:
 #  Copyright 2023 Ramana R
 #
@@ -17,8 +17,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 # Description: 
-# This code facilitates easy compilation of the MB core
-#  interface.
+#  This code facilitates easy compilation of the MB core interface.
 ############################################################################
 
 # Set project directory one level above of Makefile directory. $(CURDIR) is a GNU make variable containing the path to the current working directory
@@ -31,7 +30,8 @@ BUILDDIR := $(PROJDIR)/$(BUILDPTH)
 TARGET = $(BUILDDIR)/linux/mbconsole
 
 # Tests to run
-TESTS = ./test1.sh ./test2.sh ./test3.sh ./test4.sh
+SOURCEDIRS = $(realpath $(CURDIR)/)
+TESTS = $(foreach dir,$(SOURCEDIRS),$(wildcard $(dir)/test*.sh))
 
 # Decide whether the commands will be shown or not
 VERBOSE = FALSE

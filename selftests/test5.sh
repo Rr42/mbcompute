@@ -1,7 +1,7 @@
 #!/bin/bash
 #############################################################################
-# File name: test3.sh
-# Version: v1.1
+# File name: test5.sh
+# Version: v1.0
 # Dev: GitHub@Rr42
 # License:
 #  Copyright 2023 Ramana R
@@ -18,8 +18,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 # Description:
-#  Third self test for console application.
-#  This test further checks variables and assignment capabilities.
+#  Fifth self test for console application.
+#  This test checks the commenting and command separation features.
 #############################################################################
 
 # Check if the console application name+path was passed
@@ -35,10 +35,10 @@ fi
 options="--silent"
 
 # Run test commands and get the last line of the output for comparison
-printf "Running test: _def=-1m*a1/10\n"
-result=`$mb_app $options --command="a1=b=d=10*3.1415*10\n_def=-1m*a1/10\nexit" | tail -n 1`
+printf "Running test: \"comment 1\" lol=10 \"comment 2 lol=10;\" ;a \"comment\"=lol+1\n"
+result=`$mb_app $options --command="\"comment 1\" lol=10 \"comment 2 lol=10;\" ;a \"comment\"=lol+1\nexit" | tail -n 1`
 printf "Result: $result"
-if [ "$result" == "-0.031415" ]; then
+if [ "$result" == "11" ]; then
     printf " - PASS\n"
 else
     printf " - FAIL\n"

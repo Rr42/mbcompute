@@ -19,6 +19,7 @@
 #  limitations under the License.
 # Description:
 #  Second self test for console application.
+#  This test checks variables and assignment capabilities.
 #############################################################################
 
 # Check if the console application name+path was passed
