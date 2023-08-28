@@ -1,7 +1,7 @@
 ############################################################################
 # File name: Makefile (./)
 # Dev: GitHub@Rr42
-# Code version: v1.2
+# Code version: v1.2.1
 # License:
 #  Copyright 2023 Ramana R
 #
@@ -103,7 +103,7 @@ config:
 	$(HIDE)echo Build directory: $(BUILDPTH)
 	$(HIDE)echo Using CXX: $(CXX)
 	$(HIDE)# Check if TAROS is empty
-	$(HIDE)[ -z "${TARGETOS}" ] && ( echo "ERROR: Invalid target OS!"; exit 1 )
+	$(HIDE)[ "${TARGETOS}" ] && (exit 0) || ( echo "ERROR: Invalid target OS!"; exit 1 )
 
 clean: $(TARGETS)
 
