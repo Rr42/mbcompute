@@ -1,7 +1,7 @@
 ############################################################################
 # File name: Makefile (./)
 # Dev: GitHub@Rr42
-# Code version: v1.1
+# Code version: v1.2
 # License:
 #  Copyright 2023 Ramana R
 #
@@ -87,7 +87,7 @@ else
 	AROPTS := 
 endif
 
-TOPTARGETS := all clean
+TOPTARGETS := all
 
 selftest:
 	$(HIDE)echo '####################################'
@@ -102,6 +102,10 @@ config:
 	$(HIDE)echo Target platform: $(TARGETOS)
 	$(HIDE)echo Build directory: $(BUILDPTH)
 	$(HIDE)echo Using CXX: $(CXX)
+	$(HIDE)# Check if TAROS is empty
+	$(HIDE)[ -z "${TARGETOS}" ] && ( echo "ERROR: Invalid target OS!"; exit 1 )
+
+clean: $(TARGETS)
 
 $(TOPTARGETS): config $(TARGETS)
 $(TARGETS):
