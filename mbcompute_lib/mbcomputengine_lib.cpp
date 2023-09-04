@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mbcomputengine_lib.cpp
-* Version: v1.5
+* Version: v1.6
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2023 Ramana R
@@ -346,33 +346,42 @@ Engine Engine::eval(void){
         /* Clear command buffer */
         this->_cmdBuffer.clear();
         return *this;
-    } else if (this->_cmdBuffer[0] == "reset" || std::regex_match(this->_cmdBuffer[0], match, std::regex(R"(reset#([a-zA-Z0-9_]+))"))){
+    } else if (this->_cmdBuffer[0] == "reset" || this->_cmdBuffer[0] == "reset*" || std::regex_match(this->_cmdBuffer[0], match, std::regex(R"(reset#([a-zA-Z0-9_]+))"))){
+        bool flag_reset_all = false;
         /* Check if a function name was given */
-        if (match.size() != 2){
+        if (this->_cmdBuffer[0] == "reset*"){
+            flag_reset_all = true;
+            this->_warning_message += "[Engine] INFO: Resetting all inbuilt functions...\n";
+        } else if (match.size() != 2){
             this->_error_message += "[Engine] ERROR: No function name was given for reset operation! Nothing has been reset\n";
+            this->_error_message += "[Engine] INFO: Please use `reset #function_name` to reset a function or `reset *` to reset all functions\n";
             /* Clear command buffer */
             this->_cmdBuffer.clear();
             return *this;
         }
         /* Find the function to be reset */
-        auto ref_fun_it = std::find_if(SUPPORTED_FUNS.cbegin(), SUPPORTED_FUNS.cend(), [match](MetaFunction item){return match[1].str() == item.name;});
-        if (ref_fun_it == SUPPORTED_FUNS.cend())
+        bool flag_function_found = false;
+        for (MetaFunction fun : SUPPORTED_FUNS){
+            /* Process if the reset all flag is set or if the required function found */
+            if (flag_reset_all || match[1].str() == fun.name){
+                /* If the reference definition was found reset the function definition */
+                auto target_fun_it = std::find_if(this->_supported_functions.begin(), this->_supported_functions.end(), [fun](MetaFunction item){return fun.name == item.name;});
+                /* Check if the function definition exists */
+                if (target_fun_it != this->_supported_functions.cend()){
+                    /* If it exists, update it */
+                    (*target_fun_it).arg_names = fun.arg_names;
+                    (*target_fun_it).desc = fun.desc;
+                    (*target_fun_it).expr = fun.expr;
+                } else
+                    /* If it doesn't exist add a new entry */
+                    this->_supported_functions.push_back(fun);
+                this->_error_message += "[Engine] INFO: The function `"+fun.name+"` has been successfully reset\n";
+                flag_function_found = true;
+            }
+        }
+        if (!flag_reset_all && !flag_function_found)
             /* If the reference definition could not be found set the error string and return */
             this->_error_message += "[Engine] ERROR: The function `"+match[1].str()+"` could not be reset as it's reference definition could not be found\n";
-        else{
-            /* If the reference definition was found reset the function definition */
-            auto target_fun_it = std::find_if(this->_supported_functions.begin(), this->_supported_functions.end(), [match](MetaFunction item){return match[1].str() == item.name;});
-            /* Check if the function definition exists */
-            if (target_fun_it != this->_supported_functions.cend()){
-                /* If it exists, update it */
-                (*target_fun_it).arg_names = (*ref_fun_it).arg_names;
-                (*target_fun_it).desc = (*ref_fun_it).desc;
-                (*target_fun_it).expr = (*ref_fun_it).expr;
-            } else
-                /* If it doesn't exist add a new entry */
-                this->_supported_functions.push_back(*ref_fun_it);
-            this->_error_message += "[Engine] INFO: The function `"+match[1].str()+"` has been successfully reset\n";
-        }
         /* Clear command buffer */
         this->_cmdBuffer.clear();
         return *this;
@@ -593,13 +602,14 @@ const std::string Engine::help(void){
     help_str += "   - help -----------------> Return this message\n";
     help_str += "   - reset #function_name -> Reset an inbuilt function's definition\n";
     help_str += "                           does nothing if given function is not an inbuilt function\n";
+    help_str += "   - reset * --------------> Reset all inbuilt function definitions\n";
     help_str += "   - report ---------------> Return a summary all the defined variables and functions\n";
     help_str += "\n";
 
     /* Add help for supported operators */
     help_str += "Supported operators:\n";
     for (MetaOperator imo : SUPPORTED_OOPS)
-        help_str += imo.cat+" "+imo.desc+" [Precedence: "+std::string(1, imo.order)+"]: "+imo.oop+"\n";
+        help_str += imo.cat+" "+imo.desc+" [Precedence: "+std::to_string(imo.order)+"]: "+imo.oop+"\n";
     help_str += "\n";
 
     /* Add help for supported functions */
