@@ -52,6 +52,18 @@ The library and console application in this project can be built for Windows (x8
 make TARGETOS=WIN32 all
 ```
 
+## Running selftests
+To run the selftest modules the library and console application will first need to be built for a Linux target, refer [For a Linux target](#For-a-Linux-target).
+Once the application is built the self test can be executed by running the below command.
+```Bash
+make selftest
+```
+
+To build and execute selftests in one line, run the below command.
+```Bash
+make TARGETOS=LINUX all && make selftest
+```
+
 ## Cleanup
 The project can be cleaned by running `make clean` in the top project directory to clean all build files.
 

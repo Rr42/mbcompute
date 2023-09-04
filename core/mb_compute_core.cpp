@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mb_compute_core.cpp
-* Version: v1.4
+* Version: v1.5
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2023 Ramana R
@@ -22,6 +22,7 @@
 
 /* Includes */
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <regex>
 #include <signal.h>
@@ -35,11 +36,79 @@
 
 /* Global variable to hold the current verbosity level */
 int verbose = 0;
+std::string session_history = "";
+
+/* Class to handle printing and logging
+* Reference link: https://stackoverflow.com/a/14155788/7261761
+*/
+class log_stream{
+private:
+    std::ofstream fout;
+    bool flag_log_set;
+
+public:
+    log_stream(std::string log_file = ""){
+        // Check if opening the file succeeded
+        if (log_file.empty()){
+            this->flag_log_set = false;
+        } else{
+            this->fout.open(log_file);
+            if (this->fout.good())
+                this->flag_log_set = true;
+            else
+                this->flag_log_set = false;
+        }
+    };
+    ~log_stream(){
+        /* Cleanup */
+        if (this->fout){
+            /* Flush all streams */
+            this->flush();
+            /* Close the log file stream */
+            this->fout.close();
+        }
+    };
+    void open(std::string log_file){
+        /* Close existing handle */
+        if (this->fout)
+            this->fout.close();
+        /* Open new handle */
+        this->fout.open(log_file);
+        if (this->fout.good())
+            this->flag_log_set = true;
+        else
+            this->flag_log_set = false;
+    }
+    void flush(){
+        std::cout.flush();
+        if (this->flag_log_set)
+            this->fout.flush();
+    }
+    void log(std::string message){
+        if (this->flag_log_set)
+            this->fout << message;
+    }
+    // For regular output of variables and stuff
+    template<typename T> log_stream& operator<<(const T& something){
+        std::cout << something;
+        if (this->flag_log_set)
+            fout << something;
+        return *this;
+    }
+    // For manipulators like std::endl
+    typedef std::ostream& (*stream_function)(std::ostream&);
+    log_stream& operator<<(stream_function func){
+        func(std::cout);
+        if (this->flag_log_set)
+            func(fout);
+        return *this;
+    }
+} flog;
 
 /* Function to print based on verbosity level */
 void print_verbose(std::string msg, int verbosity=1){
     if (verbose >= verbosity)
-        std::cout << msg << std::endl;
+        flog << msg << std::endl;
 }
 
 /* Callback function to handle console/system signals sent to application
@@ -72,10 +141,10 @@ void signal_callback_handler(int signal_num) {
             break;
         case SIGINT:
             /* Handle and continue if a console interrupt is received */
-            std::cout << std::endl;
+            flog << std::endl;
             std::cerr << "[WARNING] An Interrupt signal was raised by OS" << std::endl;
-            std::cout << CONSOLE_READY_MSG;
-            std::cout.flush();
+            flog << CONSOLE_READY_MSG;
+            flog.flush();
             // exit(signal_num);
             break;
         case SIGSEGV:
@@ -96,7 +165,7 @@ void signal_callback_handler(int signal_num) {
 /* Function to perform final cleanup before exiting */
 void self_cleanup(bool silentFlag = false){
     if (!silentFlag)
-        std::cout << "Exiting..." << std::endl;
+        flog << "Exiting..." << std::endl;
 }
 
 int main(int argc, char *argv[]){
@@ -115,15 +184,17 @@ int main(int argc, char *argv[]){
     bool pipeFlag = false;
     bool silentFlag = false;
     std::string command = "";
+    std::string log_file = "";
     if (CLIparser.cmdOptionExists("-h") || CLIparser.cmdOptionExists("--help")){
-        std::cout << "Usage mbconsole [OPTIONS]" << std::endl;
-        std::cout << std::endl;
-        std::cout << "Options:" << std::endl;
-        std::cout << "  -h, --help           Show this message" << std::endl;
-        std::cout << "                       (This option will take the highest precedence)" << std::endl;
-        std::cout << "  -p, --piped-input    Operates in piped input/output mode" << std::endl;
-        std::cout << "  -s, --silent         Operates in silent mode" << std::endl;
-        std::cout << "  -c=s, --command=s    Executes given command before continuing" << std::endl;
+        flog << "Usage mbconsole [OPTIONS]" << std::endl;
+        flog << std::endl;
+        flog << "Options:" << std::endl;
+        flog << "  -h, --help           Show this message" << std::endl;
+        flog << "                       (This option will take the highest precedence)" << std::endl;
+        flog << "  -p, --piped-input    Operates in piped input/output mode" << std::endl;
+        flog << "  -s, --silent         Operates in silent mode" << std::endl;
+        flog << "  -l=s, --log=s        Saves all terminal interactions to given log file" << std::endl;
+        flog << "  -c=s, --command=s    Executes given command before continuing" << std::endl;
         /* Perform all cleanup duties and exiting */
         self_cleanup();
         return 0;
@@ -141,6 +212,15 @@ int main(int argc, char *argv[]){
         /* Remove the option part */
         command.erase(0, 3);
     }
+    if (CLIparser.cmdOptionExists("--log")){
+        log_file = CLIparser.getCmdOption("--log");
+        /* Remove the option part */
+        log_file.erase(0, 6);
+    } else if (CLIparser.cmdOptionExists("-l")){
+        log_file = CLIparser.getCmdOption("-l");
+        /* Remove the option part */
+        log_file.erase(0, 3);
+    }
     if (!command.empty()){
         command = std::regex_replace(command, std::regex("\\\\n"), "\n");
         if (!std::regex_search(command, std::regex("\n$")))
@@ -151,6 +231,9 @@ int main(int argc, char *argv[]){
     mbc::Engine eng;
     std::string result_old;
     std::string result;
+
+    /* Init log file */
+    flog.open(log_file);
 
     /* Process the given commands one line at a time */
     if (!command.empty()){
@@ -170,15 +253,15 @@ int main(int argc, char *argv[]){
             eng.eval();
             /* Check and print any warnings */
             if (!eng.getWarningMsg().empty())
-                std::cout << eng.getWarningMsg();
+                flog << eng.getWarningMsg();
             /* Check for any errors if there are none print the result to output */
             if (!eng.getErrorMsg().empty())
-                std::cout << eng.getErrorMsg();
+                flog << eng.getErrorMsg();
             else{
                 /* Get the last result */
                 while ((result = eng.getResult()) != mbc::RESULT_END)
                     result_old = result;
-                std::cout << result_old << std::endl;
+                flog << result_old << std::endl;
             }
             /* Clear command buffer for reading the next line */
             command.erase(0, pos + 1);
@@ -196,19 +279,21 @@ int main(int argc, char *argv[]){
     {
         /* Display ready message and wait for user input */
         if (!silentFlag){
-            std::cout << CONSOLE_READY_MSG;
-            std::cout.flush();
+            flog << CONSOLE_READY_MSG;
+            flog.flush();
         }
         std::cin.clear();
         std::getline(std::cin, input);
-        /* Echo input is the pipe flag is present */
+        /* Echo input if the pipe flag is present */
         if (pipeFlag && !silentFlag)
-            std::cout << input << std::endl;
+            flog << input << std::endl;
+        else
+            flog.log(input+"\n");
 
         /* Skip processing if input is empty */
         if (input.empty()){
             if (!silentFlag)
-                std::cout << "[INFO] Empty input" << std::endl;
+                flog << "[INFO] Empty input" << std::endl;
             continue;
         } else if (input == "exit")
             break;
@@ -224,15 +309,15 @@ int main(int argc, char *argv[]){
         print_verbose("[DEBUG] Variable values: "+mbcs::get_printable_vector(eng._varValues));
         /* Check and print any warnings */
         if (!eng.getWarningMsg().empty())
-            std::cout << eng.getWarningMsg();
+            flog << eng.getWarningMsg();
         /* Check for any errors if there are none print the result to output */
         if (!eng.getErrorMsg().empty())
-            std::cout << eng.getErrorMsg();
+            flog << eng.getErrorMsg();
         else{
             /* Get the last result */
             while ((result = eng.getResult()) != mbc::RESULT_END)
                 result_old = result;
-            std::cout << result_old << std::endl;
+            flog << result_old << std::endl;
         }
     } while (input != "exit");
 
