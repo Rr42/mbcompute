@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mb_compute_core.cpp
-* Version: v1.3
+* Version: v1.3.1
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2023 Ramana R
@@ -33,7 +33,7 @@
 /* Common definitions */
 #define CONSOLE_READY_MSG "MB> "
 
-/* Global variable to old current verbosity level */
+/* Global variable to hold the current verbosity level */
 int verbose = 0;
 
 /* Function to print based on verbosity level */

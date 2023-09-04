@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mbcomputengine_lib.cpp
-* Version: v1.4
+* Version: v1.4.1
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2023 Ramana R
@@ -71,7 +71,7 @@ const std::string Engine::evalFunctions(const std::string cmd){
     std::smatch match;
     std::regex filter(R"(([a-zA-Z0-9_]+)(\(.*\)+))");
 
-    /* Check if an error occurred before during one of the recursive calls */
+    /* Check if an error occurred before (during one of the recursive calls) */
     if (!this->_error_message.empty())
         return std::string();
 
@@ -500,7 +500,9 @@ Engine Engine::eval(void){
             return *this;
         }
 
-        /* Check and replace variables with values in expression */
+        /* Check and replace variables with values in expression
+        * This does a blind parse, which results in the parsing done twice on the command
+        */
         cmd = this->replaceVars(cmd);
 
         /* Check for and evaluate any supported function(s) used */
@@ -820,6 +822,7 @@ Evaluator Evaluator::parseExpr(std::string expr){
     bool flag_variable = false;
 
     /* Iterate input expression */
+    unsigned int bracket_count = 0;
     for (std::string::const_iterator it = expr.cbegin(); it != expr.cend(); ++it){
         if (not std::isdigit(*it))
             if (flag_number){
@@ -923,6 +926,13 @@ Evaluator Evaluator::parseExpr(std::string expr){
                             flag_sci_skip = false;
                         } else{
                             /* Number has ended and a operator has started! */
+                            /* Remove trailing opening bracket if nothing has been added since */
+                            if (this->_expression_infix.back() == "(")
+                                this->_expression_infix.pop_back();
+                            else
+                                this->_expression_infix.push_back(")");
+                            bracket_count--;
+                            /* Add the operator */
                             this->_expression_infix.push_back(std::string(1, *it));
                             /* Check if this is a two character operator */
                             if (SUPPORTED_OOPS.cend() != std::find_if(SUPPORTED_OOPS.cbegin(), SUPPORTED_OOPS.cend(), [it](MetaOperator item){return item.oop == (*it)+std::string(1, *(it+1));}))
@@ -944,26 +954,42 @@ Evaluator Evaluator::parseExpr(std::string expr){
                 }
                 flag_number = false;
             } else{
+                /* Check if this is a negative number and
+                * make sure that this is a negative number and not an operator following a bracket or followed by a number/variable
+                */
+                if (*it == '-' && isdigit(*(it+1)) && (it == expr.cbegin() || (*(it-1) != ')' && !flag_number && !flag_variable))){
+                    flag_number = true;
+                    if (*(it-1) != ')'){
+                        this->_expression_infix.push_back("(");
+                        bracket_count++;
+                    }
+                }
+                else
+                    flag_number = false;
+                flag_variable = false;
                 /* Append all other characters as is */
                 this->_expression_infix.push_back(std::string(1, *it));
                 /* Check if this is a two character operator */
                 if (SUPPORTED_OOPS.cend() != std::find_if(SUPPORTED_OOPS.cbegin(), SUPPORTED_OOPS.cend(), [it](MetaOperator item){return item.oop == (*it)+std::string(1, *(it+1));}))
                     this->_expression_infix.back() += std::string(1, *(++it));
-                /* Check if this is a negative number and
-                * make sure that this is a negative number and not an operator following a bracket
-                */
-                else if (*it == '-' && isdigit(*(it+1)) && !(it != expr.cbegin() && *(it-1) == ')'))
-                    flag_number = true;
-                else
-                    flag_number = false;
-                flag_variable = false;
             }
         else{
             if (flag_number || flag_variable)
                 /* Accumulate the characters of the same number/variable */
                 this->_expression_infix.back() += *it;
             else{
+                /* Add a final closing bracket to the previous section if needed */
+                if (bracket_count == 1){
+                    /* Remove trailing opening bracket if nothing has been added since */
+                    if (this->_expression_infix.back() == "(")
+                        this->_expression_infix.pop_back();
+                    else
+                        this->_expression_infix.push_back(")");
+                    bracket_count--;
+                }
                 /* Append to list if this is the first character of the number */
+                this->_expression_infix.push_back("(");
+                bracket_count++;
                 this->_expression_infix.push_back(std::string(1, *it));
                 flag_number = true;
                 flag_variable = false;
@@ -972,6 +998,19 @@ Evaluator Evaluator::parseExpr(std::string expr){
             }
         }
     }
+
+    /* Add a final closing bracket if needed */
+    if (bracket_count == 1){
+        /* Remove trailing opening bracket if nothing has been added since */
+        if (this->_expression_infix.back() == "(")
+            this->_expression_infix.pop_back();
+        else
+            this->_expression_infix.push_back(")");
+        bracket_count--;
+    }
+
+    /* Reinforce that no extra brackets exist */
+    assert(bracket_count == 0);
 
     /* Return back object so methods can be cascaded */
     return *this;
@@ -1149,6 +1188,10 @@ double Evaluator::evaluatePostfix(void){
                 stack.push(static_cast<double>(val2 == val1));
         }
     }
+
+    /* Raise a warning if the stack has multiple results */
+    if (stack.size() > 1)
+        this->_error_message += "[Evaluator] WARNING: Multiple results in stack!\n";
 
     /* Return 0 if the stack is empty */
     if (stack.empty())
