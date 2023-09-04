@@ -1,7 +1,7 @@
 ############################################################################
 # File name: Makefile (./)
 # Dev: GitHub@Rr42
-# Code version: v1.2.1
+# Code version: v1.3
 # License:
 #  Copyright 2023 Ramana R
 #
@@ -43,7 +43,8 @@ else
 endif
 
 # Configuring based on target OS
-ifeq ($(TARGETOS),LINUX)
+#  Match "LINUX" or "linux"
+ifneq (,$(filter $(TARGETOS), LINUX linux))
 # Linux (x64)
 # Setting build path
 	BUILDPTH := build/linux
@@ -55,7 +56,8 @@ ifeq ($(TARGETOS),LINUX)
 	# AR := x86_64-linux-gnu-ar
 	AR := ar
 	AROPTS := 
-else ifeq ($(TARGETOS),WIN64)
+#  Match "WIN64" or "win64"
+else ifneq (,$(filter $(TARGETOS), WIN64 win64))
 # Windows (x64) (using MINGW64)
 # Setting build path
 	BUILDPTH := build/win64
@@ -65,7 +67,8 @@ else ifeq ($(TARGETOS),WIN64)
 # Setting archiver
 	AR := x86_64-w64-mingw32-ar
 	AROPTS := 
-else ifeq ($(TARGETOS),WIN32)
+#  Match "WIN32" or "win32"
+else ifneq (,$(filter $(TARGETOS), WIN32 win32))
 # Windows (x32) (using MINGW64)
 # Setting build path
 	BUILDPTH := build/win32
@@ -103,7 +106,7 @@ config:
 	$(HIDE)echo Build directory: $(BUILDPTH)
 	$(HIDE)echo Using CXX: $(CXX)
 	$(HIDE)# Check if TAROS is empty
-	$(HIDE)[ "${TARGETOS}" ] && (exit 0) || ( echo "ERROR: Invalid target OS!"; exit 1 )
+	$(HIDE)[ "$(TARGETOS)" ] && (exit 0) || ( echo "ERROR: Invalid target OS!"; exit 1 )
 
 clean: $(TARGETS)
 
@@ -115,3 +118,8 @@ $(TARGETS):
 	$(HIDE)$(MAKE) -C $@ VERBOSE=$(VERBOSE) BUILDPTH=$(BUILDPTH) CXX=$(CXX) CXXOPTS=$(CXXOPTS) AR=$(AR) AROPTS=$(AROPTS) $(MAKECMDGOALS)
 
 .PHONY: config $(TOPTARGETS) $(TARGETS)
+
+# Make commands case-insensitive ("all" and "ALL" do the same thing)
+#  This structure ensures the upper to lower case conversion only runs once
+%: $(MAKE) $(shell echo $@ | tr "[:upper:]" "[:lower:]")
+	:
