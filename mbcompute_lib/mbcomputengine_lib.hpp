@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mbcomputengine_lib.hpp
-* Version: v1.4
+* Version: v1.5
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2023 Ramana R
@@ -126,6 +126,7 @@ private:
 
     unsigned int _max_precedence;
     std::string _error_message;
+    std::string _warning_message;
 
     /* Method returns precedence of the operator given.
     * The return value will be in the range [0, 3]
@@ -168,6 +169,9 @@ public:
 
     /* Method to return the internal error message (if any) */
     const std::string getErrorMsg(void);
+
+    /* Method to return the internal error message (if any) */
+    const std::string getWarningMsg(void);
 };
 
 /* Result end marker */
@@ -191,6 +195,7 @@ private:
 
     /* Variables for diagnostics */
     std::string _error_message;
+    std::string _warning_message;
 
     /* Method returns true if given variable name is valid */
     bool checkVarName(std::string);
@@ -243,6 +248,9 @@ public:
 
     /* Method to return the internal error message (if any) */
     const std::string getErrorMsg(void);
+
+    /* Method to return the internal error message (if any) */
+    const std::string getWarningMsg(void);
 };
 
 /* Escape any special characters used by RegEx */

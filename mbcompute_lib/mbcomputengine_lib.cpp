@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mbcomputengine_lib.cpp
-* Version: v1.4.1
+* Version: v1.5
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2023 Ramana R
@@ -32,6 +32,7 @@ Engine::Engine(){
     /* Initialise class members */
     this->_evalWiper = 0;
     this->_error_message.clear();
+    this->_warning_message.clear();
 
     /* Define all default supported functions */
     this->_supported_functions = SUPPORTED_FUNS;
@@ -329,6 +330,7 @@ Engine Engine::eval(void){
     this->_evalBuffer.clear();
     /* Reset any error messages */
     this->_error_message.clear();
+    this->_warning_message.clear();
     /* Reset the eval wiper */
     this->_evalWiper = 0;
 
@@ -492,6 +494,9 @@ Engine Engine::eval(void){
                 this->_runner.clear();
                 /* Add the newly created function definition to the supported function list */
                 this->_supported_functions.push_back(new_function);
+                /* Raise a warning if the function does not have a body */
+                if (new_function.expr.empty())
+                    this->_warning_message += "[Warning] Function `"+fname+"` does not have a body, it will always return 0 by default!\n";
                 /* Push an update message to the result buffer */
                 this->_evalBuffer.push_back("[Info] Definition for function `"+fname+"` added");
             }
@@ -748,6 +753,14 @@ const std::string Engine::getErrorMsg(void)
         return this->_error_message;
 }
 
+const std::string Engine::getWarningMsg(void)
+{
+    if (!this->_runner.getWarningMsg().empty())
+        return this->_runner.getWarningMsg()+this->_warning_message;
+    else
+        return this->_warning_message;
+}
+
 /* Evaluator class definitions */
 Evaluator::Evaluator(const std::string expression){
     this->parseExpr(expression);
@@ -774,6 +787,10 @@ const std::vector<std::string> Evaluator::getPostfixBuffer(void){
 
 const std::string Evaluator::getErrorMsg(void){
     return this->_error_message;
+}
+
+const std::string Evaluator::getWarningMsg(void){
+    return this->_warning_message;
 }
 
 int Evaluator::getOPP(std::string opr){
@@ -1092,6 +1109,7 @@ Evaluator Evaluator::convertToPostfix(void){
 
 void Evaluator::clear(void){
     this->_error_message.clear();
+    this->_warning_message.clear();
     this->_expression_infix.clear();
     this->_expression_postfix.clear();
 }
@@ -1191,7 +1209,7 @@ double Evaluator::evaluatePostfix(void){
 
     /* Raise a warning if the stack has multiple results */
     if (stack.size() > 1)
-        this->_error_message += "[Evaluator] WARNING: Multiple results in stack!\n";
+        this->_warning_message += "[Evaluator] WARNING: Multiple results in stack!\n";
 
     /* Return 0 if the stack is empty */
     if (stack.empty())

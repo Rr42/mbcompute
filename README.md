@@ -6,6 +6,8 @@ This is a math compute library and accompanying application that provides a cons
 
 ## List of supported functions
 * Solve basic mathematical expressions
+* Define custom variables
+* Define custom functions
 
 # Building project from scratch
 ## Installing requirements

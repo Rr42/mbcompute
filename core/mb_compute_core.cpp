@@ -1,6 +1,6 @@
 /****************************************************************************
 * File name: mb_compute_core.cpp
-* Version: v1.3.1
+* Version: v1.4
 * Dev: GitHub@Rr42
 * License:
 *  Copyright 2023 Ramana R
@@ -168,6 +168,9 @@ int main(int argc, char *argv[]){
             /* Load and execute the line */
             eng.load(cmd_line);
             eng.eval();
+            /* Check and print any warnings */
+            if (!eng.getWarningMsg().empty())
+                std::cout << eng.getWarningMsg();
             /* Check for any errors if there are none print the result to output */
             if (!eng.getErrorMsg().empty())
                 std::cout << eng.getErrorMsg();
@@ -219,6 +222,9 @@ int main(int argc, char *argv[]){
         eng.eval();
         print_verbose("[DEBUG] Variable names: "+mbcs::get_printable_vector(eng._varNames));
         print_verbose("[DEBUG] Variable values: "+mbcs::get_printable_vector(eng._varValues));
+        /* Check and print any warnings */
+        if (!eng.getWarningMsg().empty())
+            std::cout << eng.getWarningMsg();
         /* Check for any errors if there are none print the result to output */
         if (!eng.getErrorMsg().empty())
             std::cout << eng.getErrorMsg();
